@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord Age Encryption</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- ── SCREEN: LOCK ──────────────────────────────────────────────────── -->
+  <div id="screen-lock" class="screen" hidden>
+    <div class="screen-header">
+      <span class="lock-icon">🔐</span>
+      <h2>Discord Age Encryption</h2>
+      <p class="subtitle">Enter your passphrase to unlock encryption for this session.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="passphrase-input">Passphrase</label>
+      <input id="passphrase-input" type="password" placeholder="Your passphrase…" autocomplete="current-password">
+    </div>
+    <div id="unlock-error" class="error-msg" hidden></div>
+
+    <button id="btn-unlock" class="btn btn-primary btn-full">Unlock</button>
+    <button id="btn-goto-setup" class="btn btn-text btn-full" hidden>Set up new keypair instead</button>
+  </div>
+
+  <!-- ── SCREEN: SETUP ─────────────────────────────────────────────────── -->
+  <div id="screen-setup" class="screen" hidden>
+    <div class="screen-header">
+      <span class="lock-icon">🔐</span>
+      <h2>Discord Age Encryption</h2>
+      <p class="subtitle">One-time setup. Your private key never leaves your device.</p>
+    </div>
+
+    <div class="form-group">
+      <label for="setup-passphrase">Passphrase</label>
+      <input id="setup-passphrase" type="password" placeholder="Min 20 chars, A–Z a–z 0–9 + symbol" autocomplete="new-password">
+      <div id="strength-bar-wrap"><div id="strength-bar"></div></div>
+      <span id="strength-label" class="hint"></span>
+    </div>
+    <div class="form-group">
+      <label for="setup-passphrase2">Confirm passphrase</label>
+      <input id="setup-passphrase2" type="password" placeholder="Repeat passphrase" autocomplete="new-password">
+    </div>
+    <div id="setup-error" class="error-msg" hidden></div>
+
+    <button id="btn-generate" class="btn btn-primary btn-full">Generate keypair</button>
+    <div id="setup-spinner" class="spinner-wrap" hidden>
+      <div class="spinner"></div><span>Generating…</span>
+    </div>
+
+    <button id="btn-show-import" class="btn btn-outlined btn-full">Import existing keypair</button>
+  </div>
+
+
+  <!-- ── SCREEN: IMPORT ────────────────────────────────────────────────── -->
+  <div id="screen-import" class="screen screen-form" hidden>
+    <div class="topbar">
+      <button id="btn-back-import" class="icon-btn" aria-label="Back">←</button>
+      <span class="topbar-title">Import Keypair</span>
+    </div>
+
+    <p class="hint" style="padding: 8px 16px 4px">Paste your exported private key blob, then choose a passphrase to protect it on this device.</p>
+
+    <div class="form-group">
+      <label for="import-blob">Private key blob</label>
+      <textarea id="import-blob" rows="4" placeholder="Paste your exported private key blob here…" autocomplete="off" spellcheck="false" style="font-family: monospace; font-size: 11px; resize: none;"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="import-passphrase">New passphrase</label>
+      <input id="import-passphrase" type="password" placeholder="Min 20 chars, A–Z a–z 0–9 + symbol" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label for="import-passphrase2">Confirm passphrase</label>
+      <input id="import-passphrase2" type="password" placeholder="Repeat passphrase" autocomplete="new-password">
+    </div>
+    <div id="import-error" class="error-msg" hidden></div>
+    <button id="btn-import" class="btn btn-primary btn-full">Import &amp; unlock</button>
+    <div id="import-spinner" class="spinner-wrap" hidden>
+      <div class="spinner"></div><span>Importing…</span>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: MAIN ──────────────────────────────────────────────────── -->
+  <div id="screen-main" class="screen screen-main" hidden>
+    <div class="main-header">
+      <!-- glow layer -->
+      <div class="main-header-glow"></div>
+      <!-- top strip: actions pinned right -->
+      <div class="main-header-actions">
+        <button id="btn-my-key" class="icon-btn" title="My public key" aria-label="My public key">🔑</button>
+        <button id="btn-lock"   class="icon-btn" title="Lock session"  aria-label="Lock session">🔒</button>
+        <button id="btn-about"  class="icon-btn" title="About"         aria-label="About">ℹ️</button>
+      </div>
+      <!-- hero: icon + title centred -->
+      <div class="main-header-hero">
+        <span class="main-header-icon">🗝️</span>
+        <span class="main-header-title">Discord Age Encryption</span>
+      </div>
+      <!-- toggle row -->
+      <div class="main-header-toggle-row">
+        <span class="main-header-toggle-label">🔐 Encryption &amp; Decryption</span>
+        <label class="switch" aria-label="Toggle global encryption">
+          <input id="global-toggle" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section-label">Contacts</div>
+
+    <div id="contacts-list" class="contacts-list">
+      <div id="no-contacts" class="empty-state">No contacts yet.<br>Add one below.</div>
+    </div>
+
+    <button id="btn-add-contact" class="fab">Add contact</button>
+  </div>
+
+  <!-- ── SCREEN: ADD CONTACT ───────────────────────────────────────────── -->
+  <div id="screen-add-contact" class="screen screen-form" hidden>
+    <div class="topbar">
+      <button id="btn-back-add" class="icon-btn" aria-label="Back">←</button>
+      <span class="topbar-title">Add Contact</span>
+    </div>
+
+    <div class="form-group">
+      <label for="contact-channel-id">Channel ID</label>
+      <input id="contact-channel-id" type="text" placeholder="Numbers only">
+      <span class="hint">https://discord.com/channels/@me/<strong>CHANNEL_ID</strong></span>
+    </div>
+    <div class="form-group">
+      <label for="contact-username">Contact name</label>
+      <input id="contact-username" type="text" placeholder="e.g. Alice">
+    </div>
+    <div class="form-group">
+      <label for="contact-key">Public key</label>
+      <textarea id="contact-key" rows="5" placeholder="age1…"></textarea>
+    </div>
+    <div id="add-contact-error" class="error-msg" hidden></div>
+
+    <button id="btn-save-contact" class="btn btn-primary btn-full">Save contact</button>
+  </div>
+
+  <!-- ── SCREEN: EDIT CONTACT ──────────────────────────────────────────── -->
+  <div id="screen-edit-contact" class="screen screen-form" hidden>
+    <div class="topbar">
+      <button id="btn-back-edit" class="icon-btn" aria-label="Back">←</button>
+      <span class="topbar-title">Edit Contact</span>
+    </div>
+
+    <div class="form-group">
+      <label for="edit-channel-id">Channel ID</label>
+      <input id="edit-channel-id" type="text" placeholder="Numbers only">
+      <span class="hint">https://discord.com/channels/@me/<strong>CHANNEL_ID</strong></span>
+    </div>
+    <div class="form-group">
+      <label for="edit-username">Contact name</label>
+      <input id="edit-username" type="text" placeholder="e.g. Alice">
+    </div>
+    <div class="form-group">
+      <label for="edit-key">Public key</label>
+      <textarea id="edit-key" rows="5" placeholder="age1…"></textarea>
+    </div>
+    <div id="edit-contact-error" class="error-msg" hidden></div>
+
+    <button id="btn-save-edit" class="btn btn-primary btn-full">Save changes</button>
+  </div>
+
+  <!-- ── SCREEN: MY KEY ────────────────────────────────────────────────── -->
+  <div id="screen-my-key" class="screen" hidden>
+    <div class="topbar">
+      <button id="btn-back-key" class="icon-btn" aria-label="Back">←</button>
+      <span class="topbar-title">My public key</span>
+    </div>
+
+    <p class="hint" style="padding: 8px 16px 0">Share this with contacts so they can encrypt messages to you.</p>
+    <div class="key-box" id="my-key-box"></div>
+
+    <button id="btn-copy-key" class="btn btn-primary btn-full">Copy to clipboard</button>
+
+    <div class="danger-zone">
+      <div class="section-label" style="color: var(--md-error)">Danger zone</div>
+      <button id="btn-export-key" class="btn btn-outlined-error btn-full">Export private key</button>
+      <button id="btn-regen"      class="btn btn-outlined-error btn-full">Regenerate keypair</button>
+    </div>
+  </div>
+
+
+  <!-- ── SCREEN: ABOUT ────────────────────────────────────────────────── -->
+  <div id="screen-about" class="screen" hidden>
+    <div class="topbar">
+      <button id="btn-back-about" class="icon-btn" aria-label="Back">←</button>
+      <span class="topbar-title">About</span>
+    </div>
+
+    <div class="about-body">
+
+      <div class="about-hero">
+        <span class="about-hero-icon">🗝️</span>
+        <span class="about-hero-name">Discord Age Encryption</span>
+        <span class="about-hero-ver" id="about-version"></span>
+      </div>
+
+      <div>
+        <div class="about-section-title">Project</div>
+        <div class="about-card">
+          <a class="about-row" id="about-repo-link" href="#" target="_blank" rel="noopener">
+            <span class="about-row-icon">📦</span>
+            <span class="about-row-text">
+              <div class="about-row-label">Discord Age Encryption</div>
+            </span>
+            <span class="about-row-badge">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="about-section-title">Core Dependencies</div>
+        <div class="about-card">
+          <a class="about-row" id="about-typage-link" href="https://github.com/FiloSottile/typage/blob/main/LICENSE" target="_blank" rel="noopener">
+            <span class="about-row-icon">🔐</span>
+            <span class="about-row-text">
+              <div class="about-row-label">typage</div>
+              <div class="about-row-sub">BSD-3-Clause · Copyright 2023 The age Authors</div>
+            </span>
+            <span class="about-row-badge">↗</span>
+          </a>
+          <a class="about-row" id="about-noble-link" href="https://github.com/paulmillr/noble-hashes/blob/main/LICENSE" target="_blank" rel="noopener">
+            <span class="about-row-icon">#️⃣</span>
+            <span class="about-row-text">
+              <div class="about-row-label">noble-hashes</div>
+              <div class="about-row-sub">MIT · Copyright (c) 2022 Paul Miller (https://paulmillr.com)</div>
+            </span>
+            <span class="about-row-badge">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="about-section-title">License</div>
+        <div class="about-card">
+          <a class="about-row" id="about-license-link" href="https://github.com/YOUR_USERNAME/discord-age-encryption/blob/main/LICENSE" target="_blank" rel="noopener">
+            <span class="about-row-icon">📄</span>
+            <span class="about-row-text">
+              <div class="about-row-label">GNU General Public License v3.0</div>
+            </span>
+            <span class="about-row-badge">↗</span>
+          </a>
+        </div>
+      </div>
+
+      <p class="about-legal">
+        Your private key never leaves your device.<br>
+        This extension is not affiliated with Discord Inc.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- ── SHEET: CONTACT DETAIL ─────────────────────────────────────────── -->
+  <div id="sheet-contact" class="bottom-sheet" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-contact-name"></div>
+    <div class="sheet-fingerprint" id="sheet-contact-fp">Computing fingerprint…</div>
+    <div class="sheet-row">
+      <span>Encrypt to this contact</span>
+      <label class="switch">
+        <input id="sheet-contact-toggle" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <button id="btn-edit-contact"   class="btn btn-primary btn-full">Edit contact</button>
+    <button id="btn-delete-contact" class="btn btn-outlined-error btn-full">Delete contact</button>
+    <button id="btn-close-sheet"    class="btn btn-text btn-full">Close</button>
+  </div>
+  <div id="sheet-backdrop" class="sheet-backdrop" hidden></div>
+
+  <!-- ── MODAL: EXPORT PRIVATE KEY ────────────────────────────────────── -->
+  <div id="modal-export-key" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3>⚠️ Export private key</h3>
+      <p>Your private key decrypts all your messages. <strong>Anyone who obtains it can read every encrypted message and impersonate you.</strong></p>
+      <p>Store the exported blob in a password manager or encrypted vault. Never share it.</p>
+      <label for="export-passphrase-input" style="font-size:13px; font-weight:500;">Enter your passphrase to confirm:</label>
+      <input id="export-passphrase-input" type="password" placeholder="Your passphrase…" autocomplete="current-password" style="margin-top:8px;">
+      <div id="export-passphrase-error" class="error-msg" hidden></div>
+      <div class="modal-actions">
+        <button id="btn-export-cancel"  class="btn btn-text">Cancel</button>
+        <button id="btn-export-confirm" class="btn btn-error">Reveal key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: EXPORT KEY DISPLAY ────────────────────────────────────── -->
+  <div id="modal-export-display" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3>🔑 Private key blob</h3>
+      <p style="color: var(--md-error); font-size: 12px;">⚠️ Keep this secret. Do not share it with anyone.</p>
+      <textarea id="export-key-blob" rows="6" readonly spellcheck="false" style="width:100%; font-family: monospace; font-size: 10px; background: var(--md-surface-container); color: var(--md-on-surface); border: 1px solid var(--md-outline-variant); border-radius: 8px; padding: 8px; box-sizing: border-box; resize: none;"></textarea>
+      <div class="modal-actions">
+        <button id="btn-export-copy"  class="btn btn-primary">Copy</button>
+        <button id="btn-export-close" class="btn btn-text">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: REGEN CONFIRM ──────────────────────────────────────────── -->
+  <div id="modal-regen" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3>Regenerate keypair?</h3>
+      <p>This will create a new keypair. <strong>All previous encrypted messages become unreadable.</strong> All contacts will be disabled.</p>
+      <p>Type <strong>CONFIRM</strong> to proceed:</p>
+      <input id="regen-confirm-input" type="text" placeholder="CONFIRM" autocomplete="off">
+      <div class="modal-actions">
+        <button id="btn-regen-cancel"  class="btn btn-text">Cancel</button>
+        <button id="btn-regen-confirm" class="btn btn-error" disabled>Regenerate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: DELETE CONTACT ─────────────────────────────────────────── -->
+  <div id="modal-delete-contact" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3>Delete contact?</h3>
+      <p id="modal-delete-msg"></p>
+      <div class="modal-actions">
+        <button id="btn-delete-cancel"  class="btn btn-text">Cancel</button>
+        <button id="btn-delete-confirm" class="btn btn-error">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: RESET KEYPAIR ──────────────────────────────────────────── -->
+  <div id="modal-reset-keypair" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3>⚠️ Erase everything?</h3>
+      <p>This will <strong>permanently delete your keypair and all contacts</strong>. Encrypted messages will be unreadable forever — there is no recovery.</p>
+      <p>Only continue if you have forgotten your passphrase.</p>
+      <p>Type <strong>CONFIRM</strong> to proceed:</p>
+      <input id="reset-confirm-input" type="text" placeholder="CONFIRM" autocomplete="off">
+      <div class="modal-actions">
+        <button id="btn-reset-cancel"  class="btn btn-text">Cancel</button>
+        <button id="btn-reset-confirm" class="btn btn-error" disabled>Erase &amp; start over</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../lib/age.min.js"></script>
+  <script src="../lib/noble-hashes.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
