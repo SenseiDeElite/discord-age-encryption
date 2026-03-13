@@ -715,11 +715,11 @@
 
   function showErr(el, msg) { el.textContent = msg; el.hidden = false; }
 
-  // BLAKE2b-512 fingerprint. Verify: printf '%s' "age1..." | b2sum
+  // BLAKE3-256 fingerprint. Verify: printf '%s' "age1..." | b3sum
   async function keyFingerprint(recipient) {
     if (!recipient) return '(no key)';
     try {
-      const bytes = nobleHashes.blake2b(new TextEncoder().encode(recipient), { dkLen: 64 });
+      const bytes = nobleHashes.blake3(new TextEncoder().encode(recipient), { dkLen: 64 });
       const hex   = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
       return hex.match(/.{1,4}/g).reduce((lines, chunk, i) => {
         if (i % 8 === 0) lines.push('');
