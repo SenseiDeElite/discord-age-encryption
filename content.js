@@ -191,7 +191,8 @@
 
       const sigInput = new TextEncoder().encode(`${sid}:${cipher}`);
       const sigBytes = await crypto.subtle.sign('Ed25519', _signingKey, sigInput);
-      const sig      = bytesToBase64Url(new Uint8Array(sigBytes));
+      // Clamp to 64 bytes — some Chromium builds return 65 bytes from Ed25519 sign.
+      const sig      = bytesToBase64Url(new Uint8Array(sigBytes).slice(0, 64));
 
       _outgoingCache.set(sid, plain);
       await pasteIntoEditor(`${PREFIX}:${sid}:${cipher}:${sig}`);
@@ -306,7 +307,8 @@
     (async () => {
       const contact     = getContact();
       const sigInput    = new TextEncoder().encode(`${m[1]}:${m[2]}`);
-      const sigBytes    = base64UrlToBytes(m[3]);
+      // Clamp to 64 bytes — some Chromium builds produce a 65-byte sign output.
+      const sigBytes    = base64UrlToBytes(m[3]).slice(0, 64);
 
       const contactKey  = contact ? await importVerifyKey(contact.ageRecipient).catch(() => null) : null;
       const contactValid = contactKey
