@@ -716,6 +716,16 @@ html, body {
   padding: 0 16px 2px;
 }
 
+.sheet-fp-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--md-on-surface-variant);
+  padding: 0 16px;
+  opacity: 0.7;
+}
+
 .sheet-fingerprint {
   font-family: 'Roboto Mono', 'Consolas', monospace;
   font-size: 10.5px;
