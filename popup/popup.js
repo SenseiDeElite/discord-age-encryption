@@ -26,7 +26,7 @@
   let _contacts        = {};
   let _globalOn        = true;
   let _selectedId      = null;
-  let _sessionIdentity = null;  // held in memory for UNLOCK broadcast; not used for export
+  let _sessionIdentity = null;  // decrypted two-line identity blob, kept for export
 
   // ─── Screen router ──────────────────────────────────────────────────────────
   const screens = ['lock', 'setup', 'import', 'main', 'add-contact', 'edit-contact', 'my-key', 'about'];
@@ -604,7 +604,9 @@
     const { ageRecipient } = await store.get(['ageRecipient']);
     if (!ageRecipient) return;
     document.getElementById('my-key-box').textContent = ageRecipient;
+    document.getElementById('my-key-fp').textContent = 'Computing fingerprint…';
     show('my-key');
+    document.getElementById('my-key-fp').textContent = await keyFingerprint(ageRecipient);
   }
 
   document.getElementById('btn-copy-key').addEventListener('click', async () => {
@@ -761,10 +763,10 @@
   document.getElementById('btn-back-about').addEventListener('click', showMain);
 
   const _aboutLinks = {
-    'about-repo-link':    'https://github.com/senseideelite/discord-age-encryption',
+    'about-repo-link':    'https://github.com/YOUR_USERNAME/discord-age-encryption',
     'about-typage-link':  'https://github.com/FiloSottile/typage/blob/main/LICENSE',
     'about-noble-link':   'https://github.com/paulmillr/noble-hashes/blob/main/LICENSE',
-    'about-license-link': 'https://github.com/senseideelite/discord-age-encryption/blob/main/LICENSE',
+    'about-license-link': 'https://github.com/YOUR_USERNAME/discord-age-encryption/blob/main/LICENSE',
   };
   Object.entries(_aboutLinks).forEach(([id, url]) => {
     document.getElementById(id).addEventListener('click', (e) => {
