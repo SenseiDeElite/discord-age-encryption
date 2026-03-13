@@ -177,6 +177,8 @@
 
     <p class="hint" style="padding: 8px 16px 0">Share this with contacts so they can encrypt messages to you.</p>
     <div class="key-box" id="my-key-box"></div>
+    <div class="sheet-fp-label" style="text-align: center; padding-top: 10px;">BLAKE2b-512 Fingerprint</div>
+    <div class="sheet-fingerprint" id="my-key-fp" style="padding: 4px 16px 8px; text-align: center;">Computing fingerprint…</div>
 
     <button id="btn-copy-key" class="btn btn-primary btn-full">Copy to clipboard</button>
 
@@ -263,6 +265,7 @@
   <div id="sheet-contact" class="bottom-sheet" hidden>
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheet-contact-name"></div>
+    <div class="sheet-fp-label">BLAKE2b-512 Fingerprint</div>
     <div class="sheet-fingerprint" id="sheet-contact-fp">Computing fingerprint…</div>
     <div class="sheet-row">
       <span>Encrypt to this contact</span>
