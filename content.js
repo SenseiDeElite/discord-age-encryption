@@ -53,6 +53,7 @@
       if (e.key !== 'Enter' || e.shiftKey || e.altKey) return;
       if (document.querySelector('[role="listbox"]')) return;
       const raw = tb.innerText?.trim() ?? '';
+      if (!raw) return;
       if (raw.startsWith(PREFIX)) return;
       if (!isEncryptionActive()) return;
       e.preventDefault();
