@@ -34,11 +34,15 @@ First, install b3sum from your package manager or Cargo.
 
 **Arch Linux**
 
-`run0 pacman -Syu b3sum`
+```bash
+run0 pacman -Syu b3sum
+```
 
 **Cargo (cross-platform)**
 
-`cargo install b3sum`
+```sh
+cargo install b3sum
+```
 
 **Linux & MacOS**
 
