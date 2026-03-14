@@ -715,7 +715,7 @@
 
   function showErr(el, msg) { el.textContent = msg; el.hidden = false; }
 
-  // BLAKE3-256 fingerprint. Verify: printf '%s' "age1..." | b3sum
+  // BLAKE3 (64-byte output) fingerprint. Verify: printf '%s' "age1..." | b3sum --length 64
   async function keyFingerprint(recipient) {
     if (!recipient) return '(no key)';
     try {
