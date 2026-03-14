@@ -28,23 +28,28 @@ Encrypted messages are sent as plain text inside the Discord message box, prefix
 
 **Key fingerprints**
 
-Each contact's public key is displayed as a BLAKE2b-512 fingerprint (powered by [noble hashes](https://github.com/paulmillr/noble-hashes)). You can verify a contact's key out-of-band by comparing fingerprints with them directly, or by computing the checksum yourself:
+Each contact's public key is displayed as a BLAKE3 (64-byte output) fingerprint (powered by [paulmillr/noble-hashes](https://github.com/paulmillr/noble-hashes)). You can verify a contact's key out-of-band by comparing fingerprints with them directly, or by computing the checksum yourself.
 
-**Linux**
+First, install b3sum from your package manager or Cargo.
+
+**Arch Linux**
+
+`run0 pacman -Syu b3sum`
+
+**Cargo (cross-platform)**
+
+`cargo install b3sum`
+
+**Linux & MacOS**
 
 ```bash
-printf '%s' "age1…" | b2sum | awk '{s=toupper($1); for(i=1;i<=length(s);i+=4) printf "%s%s", substr(s,i,4), (i+3)%32==0 ? "\n" : " "; print ""}'
+printf '%s' "age1…" | b3sum --length 64 | awk '{s=toupper($1); for(i=1;i<=length(s);i+=4) printf "%s%s", substr(s,i,4), (i+3)%32==0 ? "\n" : " "; print ""}'
 ```
 
-**Cross-platform (Python)**
+**Windows (PowerShell)**
 
-```python
-python3 -c "
-import hashlib, sys
-h = hashlib.blake2b(sys.argv[1].encode(), digest_size=64).hexdigest().upper()
-rows = [' '.join(h[i:i+4] for i in range(j, j+32, 4)) for j in range(0, len(h), 32)]
-print('\n'.join(rows))
-" "age1…"
+```powershell
+$h = (b3sum --length 64 | %{ $_.Split()[0].ToUpper() }); 0..3 | %{ $h.Substring($_*32,32) -replace '(.{4})(?!$)','$1 ' } | Write-Host
 ```
 
 **Limitations**
