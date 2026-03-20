@@ -48,7 +48,7 @@ cargo install b3sum
 
 **BLAKE3 binaries**
 
-See https://github.com/BLAKE3-team/BLAKE3/releases/latest.
+See [BLAKE3-team/BLAKE3](https://github.com/BLAKE3-team/BLAKE3/releases/latest).
 
 **Linux & macOS**
 
@@ -72,36 +72,16 @@ printf '%s' "age1..." | b3sum --length 64 | awk '{s=toupper($1); for(i=1;i<=leng
 
 ## 🐛 Known Issues
 
-**Editing encrypted messages does not update the decrypted view.** If you edit an already sent encrypted message, Discord replaces the DOM node with the new ciphertext but the extension's cache still holds the original decrypted plaintext. The message will continue to show the old decrypted content until you do a full page reload (`Ctrl+R` / `Cmd+R`). This is a limitation of how the extension hooks into Discord's React-based DOM and does not have a simple fix at this time. Tested patches are welcome.
+**Editing encrypted messages does not update the decrypted view.** If you edit an already sent encrypted message, Discord replaces the DOM node with the new ciphertext but the extension's cache still holds the original decrypted plaintext. The message will continue to show the old decrypted content until you do a full page reload (`Ctrl+R` / `Cmd+R`). This is a limitation of how the extension hooks into Discord's React-based DOM and does not have a simple fix at this time. Contributions are welcome.
 
 ---
 
 ## Installation
 
-### Chromium
+### Chromium & Firefox
 
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/SenseiDeElite/discord-age-encryption.git
-   ```
-2. Rename `manifest-chromium.json` to `manifest.json` and delete `manifest-firefox.json`;
-3. Open Chromium and navigate to `chrome://extensions`;
-4. Enable **Developer mode** (toggle in the top right);
-5. Click **Load unpacked** and select the repository folder.
+See [releases](https://github.com/SenseiDeElite/discord-age-encryption/releases).
 
-### Firefox
-
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/SenseiDeElite/discord-age-encryption.git
-   ```
-2. Rename `manifest-firefox.json` to `manifest.json` and delete `manifest-chromium.json`;
-3. Zip the folder contents and rename the file to `.xpi`;
-4. Open Firefox and navigate to `about:addons`;
-5. Click the gear icon ⚙️ and choose **Install Add-on From File…**;
-6. Select the `.xpi` file.
-
-> **Note:** Firefox requires extensions to be signed by Mozilla for permanent installation. Installing an unsigned `.xpi` via "Install Add-on From File" works for temporary testing but the extension will be removed when Firefox restarts. For persistent use without signing, set `xpinstall.signatures.required` to `false` in `about:config`. Do this at your own discretion.
 ---
 
 ## Getting started
