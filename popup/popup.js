@@ -763,10 +763,10 @@
   document.getElementById('btn-back-about').addEventListener('click', showMain);
 
   const _aboutLinks = {
-    'about-repo-link':    'https://github.com/YOUR_USERNAME/discord-age-encryption',
+    'about-repo-link':    'https://github.com/SenseiDeElite/discord-age-encryption',
     'about-typage-link':  'https://github.com/FiloSottile/typage/blob/main/LICENSE',
     'about-noble-link':   'https://github.com/paulmillr/noble-hashes/blob/main/LICENSE',
-    'about-license-link': 'https://github.com/YOUR_USERNAME/discord-age-encryption/blob/main/LICENSE',
+    'about-license-link': 'https://github.com/SenseiDeElite/discord-age-encryption/blob/main/LICENSE',
   };
   Object.entries(_aboutLinks).forEach(([id, url]) => {
     document.getElementById(id).addEventListener('click', (e) => {
