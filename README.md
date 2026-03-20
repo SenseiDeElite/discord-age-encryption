@@ -1,8 +1,8 @@
 # Discord Age Encryption
 
-A browser extension that adds end-to-end encrypted messaging to Discord direct messages. Messages are encrypted on your device before being sent — Discord's servers only ever see ciphertext.
+A browser extension that adds end-to-end encrypted messaging to Discord direct messages. Messages are encrypted on your device before being sent — Discord's servers only see ciphertext.
 
-> **Status:** v0.1.0 — personal/experimental use. Not audited.
+> **Current status:** v0.1.0 — personal & experimental use. Not audited.
 
 ---
 
@@ -12,7 +12,7 @@ A browser extension that adds end-to-end encrypted messaging to Discord direct m
 - ✍️ **Signed messages** — every message is cryptographically signed, preventing tampering;
 - 🔑 **Your keys, your device** — private keys never leave your machine;
 - 🔐 **Passphrase protected** — your private key is encrypted at rest, unlocked per session;
-- 👁️ **Works inside Discord** — no separate app, messages appear inline with a 🔒 badge.
+- 👁️ **Works inside Discord** — no separate program, messages appear inline with a 🔒 badge.
 
 ---
 
@@ -30,7 +30,9 @@ Encrypted messages are sent as plain text inside the Discord message box, prefix
 
 Each contact's public key is displayed as a BLAKE3 (64-byte output) fingerprint (powered by [paulmillr/noble-hashes](https://github.com/paulmillr/noble-hashes)). You can verify a contact's key out-of-band by comparing fingerprints with them directly, or by computing the checksum yourself.
 
-First, install b3sum from your package manager or Cargo.
+First, install b3sum according to your operating system. Commands assume b3sum is added to PATH.
+
+Then, replace "age1..." with the actual age public key that you want to verify.
 
 **Arch Linux**
 
@@ -44,54 +46,81 @@ run0 pacman -Syu b3sum
 cargo install b3sum
 ```
 
-**Linux & MacOS**
+**BLAKE3 binaries**
+
+See https://github.com/BLAKE3-team/BLAKE3/releases/latest.
+
+**Linux & macOS**
 
 ```bash
-printf '%s' "age1…" | b3sum --length 64 | awk '{s=toupper($1); for(i=1;i<=length(s);i+=4) printf "%s%s", substr(s,i,4), (i+3)%32==0 ? "\n" : " "; print ""}'
+printf '%s' "age1..." | b3sum --length 64 | awk '{s=toupper($1); for(i=1;i<=length(s);i+=4) printf "%s%s", substr(s,i,4), (i+3)%32==0 ? "\n" : " "; print ""}'
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-$h = (b3sum --length 64 | %{ $_.Split()[0].ToUpper() }); 0..3 | %{ $h.Substring($_*32,32) -replace '(.{4})(?!$)','$1 ' } | Write-Host
+"age1..." | Out-File -Encoding utf8NoBOM tmp_key.txt; b3sum --length 64 --no-names tmp_key.txt | ForEach-Object { $h = $_.ToUpper(); 0..3 | ForEach-Object { $h.Substring($_*32,32) -replace '(.{4})(?!$)','$1 ' } | Write-Host }; Remove-Item tmp_key.txt
 ```
 
 **Limitations**
 
 > ⚠️ **No forward secrecy.** If your private key is ever compromised, past messages encrypted to it could be read. Keep your passphrase strong and your private key export safe.
 
-> ⚠️ **Not post-quantum secure.** The algorithms used (X25519, Ed25519, ChaCha20-Poly1305) are not resistant to attacks from a sufficiently powerful quantum computer. A future quantum adversary that recorded your encrypted messages today could potentially decrypt them later. age does support post-quantum algorithms, but the resulting ciphertext is so large that even a single-character message exceeds Discord's 2000 character limit, making it impractical for this use case.
+> ⚠️ **Not post-quantum secure.** The algorithms used (X25519, Ed25519, ChaCha20-Poly1305) are not resistant to attacks from a sufficiently powerful quantum computer. A future quantum adversary that recorded your encrypted messages today could potentially decrypt them later. age does support post-quantum algorithms, but the resulting ciphertext is too large for Discord, making it impractical for this use case.
+
+---
+
+## 🐛 Known Issues
+
+**Editing encrypted messages does not update the decrypted view.** If you edit an already sent encrypted message, Discord replaces the DOM node with the new ciphertext but the extension's cache still holds the original decrypted plaintext. The message will continue to show the old decrypted content until you do a full page reload (`Ctrl+R` / `Cmd+R`). This is a limitation of how the extension hooks into Discord's React-based DOM and does not have a simple fix at this time. Tested patches are welcome.
 
 ---
 
 ## Installation
 
-## Chromium
+### Chromium
 
-1. Clone or manually download this repository: `git clone https://github.com/SenseiDeElite/discord-age-encryption.git`
-3. Open Chromium and navigate to `chrome://extensions`
-4. Enable **Developer mode** (toggle in the top right)
-5. Click **Load unpacked** and select the repository folder
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/SenseiDeElite/discord-age-encryption.git
+   ```
+2. Rename `manifest-chromium.json` to `manifest.json` and delete `manifest-firefox.json`;
+3. Open Chromium and navigate to `chrome://extensions`;
+4. Enable **Developer mode** (toggle in the top right);
+5. Click **Load unpacked** and select the repository folder.
 
+### Firefox
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/SenseiDeElite/discord-age-encryption.git
+   ```
+2. Rename `manifest-firefox.json` to `manifest.json` and delete `manifest-chromium.json`;
+3. Zip the folder contents and rename the file to `.xpi`;
+4. Open Firefox and navigate to `about:addons`;
+5. Click the gear icon ⚙️ and choose **Install Add-on From File…**;
+6. Select the `.xpi` file.
+
+> **Note:** Firefox requires extensions to be signed by Mozilla for permanent installation. Installing an unsigned `.xpi` via "Install Add-on From File" works for temporary testing but the extension will be removed when Firefox restarts. For persistent use without signing, set `xpinstall.signatures.required` to `false` in `about:config`. Do this at your own discretion.
 ---
 
 ## Getting started
 
 **First time setup**
 
-1. Click the extension icon in your toolbar
-2. Choose a strong passphrase (at least 20 characters, mixed case, numbers, and symbols)
-3. Click **Generate keypair** — your keys are created and stored locally
-4. Click **My public key** (🔑) and copy it to share with your contact
+1. Click the extension icon in your toolbar;
+2. Choose a strong passphrase (at least 20 characters, mixed case, numbers, and symbols);
+3. Click **Generate keypair** — your keys are created and stored locally;
+4. Click **My public key** 🔑 and copy it to share with your contact.
 
 **Adding a contact**
 
-1. Open the direct message with your contact in Discord
-2. Click **Add contact** in the extension
-3. Paste their public key and give them a name — the channel ID fills in automatically if you're already in the direct message.
-4. Click **Save contact**
+1. Open the direct message with your contact in Discord;
+2. Click **Add contact** in the extension;
+3. Paste their public key and give them a name — the channel ID fills in automatically if you're already in their direct message;
+4. Click **Save contact**.
 
-Both sides need to have added each other before encrypted messaging works.
+Both sides need to have added each other before encrypted messaging correctly works.
 
 **Sending messages**
 
@@ -101,8 +130,7 @@ Once a contact is added and enabled, just type and press **Enter** as normal —
 
 ## Key management
 
-- **Lock** (🔒) — clears the session. Your key stays saved but you'll need your passphrase to unlock again next session.
-- **Export private key** — requires passphrase re-entry. Save the exported blob somewhere safe (a password manager or encrypted vault). Anyone who has it can read your messages and impersonate you.
+- **Export private key** — requires passphrase re-entry. Save the exported blob somewhere safe (a password manager or encrypted vault). Anyone who has it can read all messages encrypted to you and encrypt messages on your behalf.
 - **Regenerate keypair** — creates a new keypair. All previous encrypted messages become permanently unreadable and all contacts are disabled. Use only if your key is compromised.
 
 ---
@@ -113,4 +141,4 @@ GNU General Public License v3.0 — see `LICENSE`.
 
 See `THIRD_PARTY_NOTICES` for full third-party license texts.
 
-This extension is not affiliated with or endorsed by Discord Inc.
+This extension is not affiliated with or endorsed by Discord Inc. or any of the projects mentioned.
