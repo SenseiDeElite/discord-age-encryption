@@ -2,8 +2,6 @@
 
 A browser extension that adds end-to-end encrypted messaging to Discord direct messages. Messages are encrypted on your device before being sent — Discord's servers only see ciphertext.
 
-> **Current status:** v0.1.0 — personal & experimental use. Not audited.
-
 ---
 
 ## Features
