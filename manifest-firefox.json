@@ -5,8 +5,9 @@
   "description": "End-to-end age encryption for Discord.",
   "browser_specific_settings": {
     "gecko": {
-      "id": "discord-age-encryption@github.com/SenseiDeElite",
-      "strict_min_version": "112.0"
+      "id": "{19e0c78a-600a-4739-8977-56ca5741df7e}",
+      "strict_min_version": "112.0",
+      "update_url": "https://raw.githubusercontent.com/SenseiDeElite/discord-age-encryption/main/updates.json"
     }
   },
   "permissions": [
