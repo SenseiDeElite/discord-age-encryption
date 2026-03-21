@@ -78,7 +78,7 @@ printf '%s' "age1..." | b3sum --length 64 | awk '{s=toupper($1); for(i=1;i<=leng
 
 ### Chromium & Firefox
 
-See [releases](https://github.com/SenseiDeElite/discord-age-encryption/releases).
+See [releases](https://github.com/SenseiDeElite/discord-age-encryption/releases). Only Firefox supports auto update for the time being.
 
 ---
 
