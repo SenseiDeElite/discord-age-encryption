@@ -15,7 +15,6 @@ document.getElementById('f').addEventListener('change', async (e) => {
   try {
     const text = await file.text();
 
-    // Quick sanity check before storing
     const parsed = JSON.parse(text);
     const entries = Array.isArray(parsed) ? parsed : parsed && parsed.contacts;
     if (!Array.isArray(entries)) throw new Error('Not a valid contacts export.');
