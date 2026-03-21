@@ -903,8 +903,7 @@
     'about-license-link': 'https://github.com/SenseiDeElite/discord-age-encryption/blob/main/LICENSE',
   };
   Object.entries(_aboutLinks).forEach(([id, url]) => {
-    document.getElementById(id).addEventListener('click', (e) => {
-      e.preventDefault();
+    document.getElementById(id).addEventListener('click', () => {
       chrome.tabs.create({ url });
     });
   });
