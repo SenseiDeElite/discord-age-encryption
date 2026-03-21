@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Import Contacts — Discord Age Encryption</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', system-ui, sans-serif;
+      background: #0f131a;
+      color: #e3e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 18px;
+    }
+    .card {
+      background: #1c2532;
+      border: 1px solid #2e3d4f;
+      border-radius: 24px;
+      padding: 32px 28px;
+      max-width: 380px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+    .icon  { font-size: 36px; line-height: 1; }
+    h2     { font-size: 18px; font-weight: 500; }
+    p      { font-size: 13px; color: #a8b8cc; line-height: 1.5; }
+    label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      height: 40px;
+      background: #64b5f6;
+      color: #003258;
+      border-radius: 100px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 160ms;
+      user-select: none;
+    }
+    label:hover { background: #90caf9; }
+    input[type=file] { display: none; }
+    #status {
+      font-size: 13px;
+      color: #a8b8cc;
+      min-height: 20px;
+      line-height: 1.5;
+    }
+    #status.ok  { color: #57f287; }
+    #status.err { color: #ed4245; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="icon">&#x2B06;&#xFE0F;</span>
+    <h2>Import Contacts</h2>
+    <p>Select your <strong>discord-age-contacts</strong> JSON export file.</p>
+    <label>
+      Choose file
+      <input id="f" type="file" accept=".json,application/json">
+    </label>
+    <div id="status"></div>
+  </div>
+  <script src="import-helper.js"></script>
+</body>
+</html>
