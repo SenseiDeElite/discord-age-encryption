@@ -587,7 +587,6 @@
       return;
     }
 
-    // If the channel ID changed, remove the old entry
     if (_selectedId && _selectedId !== channelId) delete _contacts[_selectedId];
     _contacts[channelId] = { username, ageRecipient: recipient, enabled: _contacts[channelId]?.enabled ?? true };
     _selectedId = null;
@@ -610,7 +609,6 @@
     const blob = new Blob([json], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
 
-    // Build a locale-aware date string then sanitise it for use in a filename.
     const datePart = new Date()
       .toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
       .replace(/[\/\\:]/g, '-');
@@ -690,8 +688,6 @@
   }
 
   document.getElementById('btn-import-contacts').addEventListener('click', () => {
-    // Open the import helper as a full extension tab — works on both Chrome
-    // and Firefox, avoiding all popup focus / permission restrictions.
     chrome.tabs.create({ url: chrome.runtime.getURL('popup/import-helper.html') });
   });
 
@@ -714,7 +710,6 @@
       const data = await new Promise(r =>
         chrome.storage.session.get(['pending_import', 'pending_import_tab'], r));
       if (!data.pending_import) return;
-      // Stash the helper tab ID before clearing storage so we can close it later.
       _importHelperTabId = data.pending_import_tab ?? null;
       await new Promise(r => chrome.storage.session.remove(
         ['pending_import', 'pending_import_tab'], r));
