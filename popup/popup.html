@@ -109,13 +109,30 @@
       </div>
     </div>
 
-    <div class="section-label">Contacts</div>
+    <div class="section-label">
+      <span>Contacts</span>
+      <div class="section-label-actions">
+        <button id="btn-export-contacts" class="icon-btn icon-btn-sm" title="Export contacts" aria-label="Export contacts">⬇️</button>
+        <button id="btn-import-contacts" class="icon-btn icon-btn-sm" title="Import contacts" aria-label="Import contacts">⬆️</button>
+      </div>
+    </div>
 
     <div id="contacts-list" class="contacts-list">
       <div id="no-contacts" class="empty-state">No contacts yet.<br>Add one below.</div>
     </div>
 
     <button id="btn-add-contact" class="fab">Add contact</button>
+  </div>
+
+  <!-- ── MODAL: IMPORT CONTACTS RESULT ─────────────────────────────────── -->
+  <div id="modal-import-contacts" class="modal-overlay" hidden>
+    <div class="modal">
+      <h3>Import contacts</h3>
+      <p id="modal-import-contacts-msg"></p>
+      <div class="modal-actions">
+        <button id="btn-import-contacts-ok" class="btn btn-primary">OK</button>
+      </div>
+    </div>
   </div>
 
   <!-- ── SCREEN: ADD CONTACT ───────────────────────────────────────────── -->
