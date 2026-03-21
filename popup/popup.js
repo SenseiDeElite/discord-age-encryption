@@ -737,6 +737,8 @@
 
   // ─── My key screen ───────────────────────────────────────────────────────
 
+  document.getElementById('btn-back-key').addEventListener('click', showMain);
+
   async function showMyKey() {
     const { ageRecipient } = await store.get(['ageRecipient']);
     if (!ageRecipient) return;
