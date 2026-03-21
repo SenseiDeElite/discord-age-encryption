@@ -596,9 +596,146 @@
     await showMain();
   });
 
-  // ─── My key screen ───────────────────────────────────────────────────────────
+  // ─── Export contacts ─────────────────────────────────────────────────────
 
-  document.getElementById('btn-back-key').addEventListener('click', showMain);
+  document.getElementById('btn-export-contacts').addEventListener('click', () => {
+    const entries = Object.entries(_contacts).map(([channelId, c]) => ({
+      channelId,
+      username:     c.username,
+      ageRecipient: c.ageRecipient,
+      enabled:      c.enabled,
+    }));
+
+    const json = JSON.stringify({ version: 1, contacts: entries }, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+
+    // Build a locale-aware date string then sanitise it for use in a filename.
+    const datePart = new Date()
+      .toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })
+      .replace(/[\/\\:]/g, '-');
+
+    const a = Object.assign(document.createElement('a'), {
+      href:     url,
+      download: `discord-age-contacts-${datePart}.json`,
+    });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // ─── Import contacts ──────────────────────────────────────────────────────
+  // Both Chrome and Firefox block file picking from an extension popup:
+  //   Chrome  — showOpenFilePicker() throws NotAllowedError (popup is not a
+  //              top-level browsing context); <input type="file"> steals focus
+  //              and closes the popup.
+  //   Firefox — <input type="file"> closes the popup (unfixed bug 1292701);
+  //              showOpenFilePicker() has the same focus problem.
+  //
+  // Universal fix: open a full-page import helper tab. It writes the chosen
+  // JSON to chrome.storage.session, then calls chrome.action.openPopup()
+  // (Chrome ≥ 127) or closes itself (Firefox — user clicks the icon again).
+  // On the next popup boot, checkPendingImport() picks up the stored JSON.
+
+  async function doImportContacts(json) {
+    const msgEl = document.getElementById('modal-import-contacts-msg');
+    const modal  = document.getElementById('modal-import-contacts');
+
+    let parsed;
+    try { parsed = JSON.parse(json); }
+    catch {
+      msgEl.textContent = 'Could not parse file — make sure it is a valid contacts export.';
+      modal.hidden = false;
+      return;
+    }
+
+    const entries = Array.isArray(parsed) ? parsed : parsed?.contacts;
+    if (!Array.isArray(entries)) {
+      msgEl.textContent = 'Unrecognised format — expected a contacts export JSON.';
+      modal.hidden = false;
+      return;
+    }
+
+    let added = 0, updated = 0, skipped = 0;
+    for (const entry of entries) {
+      const { channelId, username, ageRecipient, enabled } = entry ?? {};
+      if (!channelId || !username || !ageRecipient) { skipped++; continue; }
+      if (!/^\d+$/.test(channelId))                 { skipped++; continue; }
+      if (!ageRecipient.startsWith('age1'))          { skipped++; continue; }
+
+      const exists = Object.prototype.hasOwnProperty.call(_contacts, channelId);
+      _contacts[channelId] = { username, ageRecipient, enabled: (enabled !== false) };
+      exists ? updated++ : added++;
+    }
+
+    await store.set({ contacts: _contacts });
+    // Send CONTACTS_UPDATED so content scripts reload contacts from storage.
+    // Also re-send UNLOCK with the current session identity — the most reliable
+    // way to make content scripts pick up new contacts, since UNLOCK triggers a
+    // full re-init of _contacts + the enter-key hook in case the content script
+    // initialised before this import completed.
+    sendToDiscordTabs({ type: 'CONTACTS_UPDATED' });
+    if (_sessionIdentity) {
+      sendToDiscordTabs({ type: 'UNLOCK', identity: _sessionIdentity });
+    }
+    renderContacts();
+
+    const parts = [];
+    if (added)   parts.push(`${added} contact${added   !== 1 ? 's' : ''} added`);
+    if (updated) parts.push(`${updated} contact${updated !== 1 ? 's' : ''} updated`);
+    if (skipped) parts.push(`${skipped} skipped (invalid)`);
+    msgEl.textContent = 'Import complete — ' + (parts.join(', ') || 'nothing changed') + '.';
+    modal.hidden = false;
+  }
+
+  document.getElementById('btn-import-contacts').addEventListener('click', () => {
+    // Open the import helper as a full extension tab — works on both Chrome
+    // and Firefox, avoiding all popup focus / permission restrictions.
+    chrome.tabs.create({ url: chrome.runtime.getURL('popup/import-helper.html') });
+  });
+
+  // Tab ID of the import helper page, set when a pending import is detected.
+  // Used to close the helper tab when the user dismisses the result modal
+  // (OK button) or when the popup is closed while the modal is still open.
+  let _importHelperTabId = null;
+
+  function closeImportHelperTab() {
+    if (_importHelperTabId === null) return;
+    const id = _importHelperTabId;
+    _importHelperTabId = null;
+    chrome.tabs.remove(id, () => void chrome.runtime.lastError);
+  }
+
+  // On boot, check whether the import helper wrote JSON to session storage.
+  async function checkPendingImport() {
+    try {
+      if (!chrome.storage.session) return;
+      const data = await new Promise(r =>
+        chrome.storage.session.get(['pending_import', 'pending_import_tab'], r));
+      if (!data.pending_import) return;
+      // Stash the helper tab ID before clearing storage so we can close it later.
+      _importHelperTabId = data.pending_import_tab ?? null;
+      await new Promise(r => chrome.storage.session.remove(
+        ['pending_import', 'pending_import_tab'], r));
+      await doImportContacts(data.pending_import);
+    } catch {}
+  }
+
+  document.getElementById('btn-import-contacts-ok').addEventListener('click', () => {
+    document.getElementById('modal-import-contacts').hidden = true;
+    closeImportHelperTab();
+  });
+
+  // Also close the helper tab if the popup is closed while the modal is visible
+  // (user clicks away / presses Escape). window.unload fires when the popup closes.
+  window.addEventListener('unload', () => {
+    if (!document.getElementById('modal-import-contacts').hidden) {
+      closeImportHelperTab();
+    }
+  });
+
+  // ─── My key screen ───────────────────────────────────────────────────────
 
   async function showMyKey() {
     const { ageRecipient } = await store.get(['ageRecipient']);
@@ -787,6 +924,7 @@
     await boot();
     if (!document.getElementById('screen-main').hidden) {
       if (await restoreDraft()) show('add-contact');
+      else await checkPendingImport();
     }
   }
 
