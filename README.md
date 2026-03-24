@@ -1,28 +1,27 @@
 # Discord Age Encryption
 
-A browser extension that adds end-to-end encrypted messaging to Discord direct messages. Messages are encrypted on your device before being sent — Discord's servers only see ciphertext.
+A browser extension that adds end-to-end encrypted messaging to Discord DMs. Messages are encrypted on your device before being sent — Discord's servers only see ciphertext.
 
 ---
 
 ## Features
 
-- 🔒 **End-to-end encrypted** — only you and your contact can read messages;
-- ✍️ **Signed messages** — every message is cryptographically signed, preventing tampering;
-- 🔑 **Your keys, your device** — private keys never leave your machine;
-- 🔐 **Passphrase protected** — your private key is encrypted at rest, unlocked per session;
-- 👁️ **Works inside Discord** — no separate program, messages appear inline with a 🔒 badge.
+- 🔒 **End-to-end encrypted —** only you and your contact can read messages;
+- ✍️ **Signed messages —** every message is cryptographically signed, preventing tampering;
+- 🔑 **Your keys, your device —** private keys never leave your machine;
+- 🔐 **Passphrase protected —** your private key is encrypted at rest, unlocked per session.
 
 ---
 
 ## Cryptography
 
-Encryption uses **[age](https://github.com/FiloSottile/typage)** (X25519 key agreement + ChaCha20-Poly1305), a modern and well-audited encryption format. Each message is also signed with an **Ed25519** signature, which guarantees that a message could only have been sent by the person who owns that keypair — any tampering or forgery is flagged immediately.
+Encryption uses **[age](https://github.com/FiloSottile/typage)** (X25519 key agreement + ChaCha20-Poly1305), a modern and well-audited encryption format. Each message is also signed with an Ed25519 signature, which guarantees that a message could only have been sent by the person who owns that keypair — any tampering or forgery is flagged immediately.
 
 Your private key is stored encrypted on your device using age's scrypt passphrase protection. It is never uploaded anywhere.
 
 **Wire format**
 
-Encrypted messages are sent as plain text inside the Discord message box, prefixed with `[age]` so the extension can identify them. Each message embeds a short random ID, the encrypted ciphertext, and an Ed25519 signature — all in a single self-contained string. The recipient's extension decrypts and verifies the message inline, replacing the raw ciphertext with the plaintext and a 🔒 badge. Messages are encrypted to both the recipient and the sender, so both parties can read the conversation.
+Encrypted messages are sent as raw ciphertext, prefixed with `[age]` so the extension can identify them. Each message embeds a short random ID, the encrypted ciphertext, and an Ed25519 signature — all in a single self-contained string. The recipient's extension decrypts and verifies the message inline, replacing the ciphertext with the plaintext and a locker badge. Messages are encrypted to both the recipient and the sender, so both parties can read the conversation.
 
 **Key fingerprints**
 
