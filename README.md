@@ -15,7 +15,7 @@ A browser extension that adds end-to-end encrypted messaging to Discord DMs. Mes
 
 ## Cryptography
 
-Encryption uses **[age](https://github.com/FiloSottile/typage)** (X25519 key agreement + ChaCha20-Poly1305), a modern and well-audited encryption format. Each message is also signed with an Ed25519 signature, which guarantees that a message could only have been sent by the person who owns that keypair — any tampering or forgery is flagged immediately.
+Encryption uses [age](https://github.com/FiloSottile/typage) (X25519 key agreement + ChaCha20-Poly1305), a modern and well-audited encryption format. Each message is also signed with an Ed25519 signature, which guarantees that a message could only have been sent by the person who owns that keypair — any tampering or forgery is flagged immediately.
 
 Your private key is stored encrypted on your device using age's scrypt passphrase protection. It is never uploaded anywhere.
 
@@ -69,7 +69,7 @@ printf '%s' "age1..." | b3sum --length 64 | awk '{s=toupper($1); for(i=1;i<=leng
 
 ## 🐛 Known Issues
 
-**Editing encrypted messages does not update the decrypted view.** If you edit an already sent encrypted message, it'll continue to show the old decrypted content until you do a full page reload (`Ctrl+R`/`Cmd+R`). This is a limitation of how the extension hooks into Discord's React-based DOM and does not have a simple fix at this time. Contributions are welcome.
+Editing encrypted messages does not update the decrypted view. If you edit an already sent encrypted message, it'll continue to show the old decrypted content until you do a full page reload (`Ctrl+R`/`Cmd+R`). This is a limitation of how the extension hooks into Discord's React-based DOM and does not have a simple fix at this time. Contributions are welcome.
 
 ---
 
